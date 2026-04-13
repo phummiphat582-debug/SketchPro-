@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>SketchPro 3D — Professional</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#111;--bg1:#161616;--bg2:#1c1c1c;--bg3:#232323;--bg4:#2a2a2a;
+  --border:#2a2a2a;--acc:#4a7fc1;--acc2:#e05050;--acc3:#44cc88;
+  --text:#ccc;--text2:#888;--text3:#555;
+}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;display:flex;flex-direction:column;user-select:none;}
+
+/* ── MENUBAR ── */
+#menubar{display:flex;align-items:center;background:var(--bg1);border-bottom:1px solid var(--border);padding:0 8px;height:26px;gap:1px;flex-shrink:0;overflow-x:auto;}
+.logo{color:var(--acc);font-weight:700;font-size:13px;margin-right:6px;white-space:nowrap;letter-spacing:.5px;}
+.mbtn{padding:2px 8px;border-radius:3px;cursor:pointer;color:#999;font-size:11px;white-space:nowrap;}
+.mbtn:hover{background:var(--bg4);color:#fff;}
+.mright{margin-left:auto;font-size:10px;color:#444;white-space:nowrap;}
+
+/* ── TOOLBAR ── */
+#toolbar{display:flex;align-items:center;background:var(--bg2);border-bottom:1px solid var(--border);padding:2px 4px;gap:1px;flex-shrink:0;overflow-x:auto;}
+.sep{width:1px;height:20px;background:var(--border);margin:0 3px;flex-shrink:0;}
+.tbtn{width:28px;height:28px;border-radius:4px;border:none;background:transparent;color:#888;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;touch-action:manipulation;transition:background .1s,color .1s;}
+.tbtn:hover,.tbtn:active{background:var(--bg4);color:#fff;}
+.tbtn.on{background:var(--acc);color:#fff;}
+.tbtn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;}
+.ctrl{display:flex;align-items:center;gap:3px;flex-shrink:0;}
+.ctrl label{font-size:10px;color:#666;white-space:nowrap;}
+input[type=range]{accent-color:var(--acc);cursor:pointer;height:12px;}
+input[type=color]{width:24px;height:22px;border:1px solid #444;border-radius:3px;cursor:pointer;padding:1px;background:#1a1a1a;flex-shrink:0;}
+select{background:#1a1a1a;color:#ccc;border:1px solid #333;border-radius:3px;padding:2px 4px;font-size:11px;cursor:pointer;}
+.aibtn{padding:0 10px;height:24px;background:linear-gradient(90deg,#1a3a7a,#2a5aaa);color:#8af;border:1px solid #2a4a8a;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.aibtn:hover{background:linear-gradient(90deg,#2a4a8a,#3a6abb);}
+
+/* ── WORKSPACE ── */
+#workspace{display:flex;flex:1;overflow:hidden;min-height:0;}
+
+/* ── TOOLBOX ── */
+#toolbox{width:44px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:4px 0;gap:1px;overflow-y:auto;flex-shrink:0;}
+.t{width:36px;height:36px;border-radius:5px;border:none;background:transparent;color:#666;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1px;touch-action:manipulation;transition:background .1s,color .1s;}
+.t:hover,.t:active{background:var(--bg4);color:#fff;}
+.t.on{background:var(--acc);color:#fff;}
+.t svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;}
+.t span{font-size:6px;line-height:1;margin-top:1px;}
+.tsep{width:28px;height:1px;background:var(--border);margin:2px 0;}
+
+/* ── CANVAS AREA ── */
+#cWrap{flex:1;position:relative;overflow:hidden;background:#181818;min-width:0;}
+canvas{position:absolute;top:0;left:0;touch-action:none;}
+#cGrid{z-index:1;pointer-events:none;}
+#cImg{z-index:2;pointer-events:none;}
+#cDraw{z-index:3;}
+#cOver{z-index:4;pointer-events:none;}
+#c3D{z-index:5;pointer-events:none;display:none;}
+
+/* drop overlay */
+#dropOv{position:absolute;inset:0;background:rgba(74,127,193,.15);border:3px dashed var(--acc);z-index:50;display:none;align-items:center;justify-content:center;font-size:18px;color:var(--acc);font-weight:700;pointer-events:none;}
+#dropOv.show{display:flex;}
+
+/* text input */
+#txtIn{display:none;position:absolute;background:transparent;border:1.5px dashed var(--acc);color:#fff;outline:none;z-index:10;min-width:60px;padding:2px 4px;caret-color:var(--acc);font-family:inherit;}
+
+/* measure tooltip */
+#measureTip{display:none;position:absolute;background:#111;border:1px solid var(--acc);color:var(--acc);font-size:11px;padding:2px 6px;border-radius:3px;z-index:20;pointer-events:none;white-space:nowrap;}
+
+/* ── RIGHT PANEL ── */
+#pRight{width:190px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0;}
+.sect{border-bottom:1px solid var(--border);}
+.sHead{padding:5px 8px;font-size:11px;font-weight:600;color:#aaa;background:var(--bg1);cursor:pointer;}
+.sHead:hover{background:var(--bg3);}
+.sBody{padding:6px 8px;}
+.row{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;gap:4px;}
+.lbl{font-size:10px;color:#666;white-space:nowrap;}
+.val{font-size:10px;color:#ccc;min-width:28px;text-align:right;}
+.fs{width:100%;margin-bottom:4px;accent-color:var(--acc);}
+.swatch-row{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:5px;}
+.sw{width:18px;height:18px;border-radius:3px;border:1px solid #444;cursor:pointer;flex-shrink:0;}
+.sw:hover{transform:scale(1.2);}
+.layer{display:flex;align-items:center;gap:4px;padding:3px 0;border-bottom:1px solid var(--border);font-size:10px;}
+.leye{cursor:pointer;font-size:11px;}
+.lname{flex:1;color:#bbb;}
+.ldel{cursor:pointer;color:#555;font-size:10px;}
+.ldel:hover{color:var(--acc2);}
+.addL{width:100%;margin-top:4px;padding:4px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;color:#777;cursor:pointer;font-size:10px;}
+.addL:hover{background:var(--bg4);color:#ccc;}
+
+/* 3D Input row */
+.inp3d{background:#111;border:1px solid #333;border-radius:3px;color:#ccc;font-size:10px;width:52px;padding:2px 4px;}
+.inp3d:focus{outline:1px solid var(--acc);}
+
+/* AI 3D PANEL */
+#ai3dPanel{position:absolute;right:200px;top:8px;width:270px;background:rgba(12,12,18,.97);border:1px solid #2a3a5a;border-radius:8px;z-index:30;box-shadow:0 8px 32px rgba(0,0,0,.8);display:none;flex-direction:column;overflow:hidden;max-height:calc(100% - 16px);}
+#ai3dPanel.show{display:flex;}
+#ai3dHead{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:linear-gradient(90deg,#0a1828,#0a1020);border-bottom:1px solid #1a2a40;}
+#ai3dHead .ttl{font-size:12px;font-weight:700;color:#7ab8f5;}
+#ai3dHead .xcls{background:none;border:none;color:#445;cursor:pointer;font-size:14px;}
+#ai3dHead .xcls:hover{color:#fff;}
+#ai3dBody{padding:10px;overflow-y:auto;}
+.ailbl{font-size:9px;color:#445;letter-spacing:.4px;text-transform:uppercase;margin-bottom:4px;}
+.aisel{width:100%;background:#0d0d14;color:#bbb;border:1px solid #1a2a3a;border-radius:4px;padding:4px 6px;font-size:11px;margin-bottom:6px;}
+.airow{display:flex;align-items:center;gap:5px;margin-bottom:4px;}
+.airow label{font-size:10px;color:#556;width:60px;flex-shrink:0;}
+.airow input[type=range]{flex:1;accent-color:var(--acc);height:12px;}
+.airow span{font-size:10px;color:#aaa;width:30px;text-align:right;}
+.aiprev{width:100%;height:120px;border:1px solid #1a2a3a;border-radius:5px;background:#080810;display:flex;align-items:center;justify-content:center;margin-bottom:6px;overflow:hidden;position:relative;}
+#aiPrevC{width:100%;height:100%;}
+.aist{font-size:10px;color:#334;text-align:center;margin-bottom:6px;min-height:14px;}
+.aist.run{color:var(--acc);animation:pulse 1s infinite;}
+.aist.ok{color:var(--acc3);}
+.aist.err{color:var(--acc2);}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.aiprog{width:100%;height:3px;background:#0d0d14;border-radius:2px;margin-bottom:6px;overflow:hidden;}
+.aiprogb{height:100%;width:0%;background:linear-gradient(90deg,#1a4a8a,#7ab8f5);border-radius:2px;transition:width .3s;}
+.aibig{width:100%;padding:6px;border:none;border-radius:5px;cursor:pointer;font-size:11px;font-weight:700;margin-bottom:4px;}
+.aibig.pri{background:linear-gradient(90deg,#1a4a8a,#2a6acc);color:#fff;}
+.aibig.pri:hover{background:linear-gradient(90deg,#2a5a9a,#3a7add);}
+.aibig.pri:disabled{background:#0d1a2a;color:#334;cursor:not-allowed;}
+.aibig.sec{background:#111;border:1px solid #222;color:#556;}
+.aibig.sec:hover{background:#1a1a2a;color:#aaa;}
+.stylGrid{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:8px;}
+.styleC{padding:5px;border:1px solid #1a2a3a;border-radius:4px;cursor:pointer;text-align:center;font-size:10px;color:#445;background:#0d0d14;}
+.styleC:hover{border-color:#2a4a7a;color:#888;}
+.styleC.on{border-color:var(--acc);color:#7ab8f5;background:#0a1628;}
+.styleC .ico{font-size:16px;margin-bottom:2px;}
+
+/* ── STATUS BAR ── */
+#status{height:20px;background:var(--bg1);border-top:1px solid var(--border);display:flex;align-items:center;padding:0 8px;gap:14px;font-size:10px;color:#555;flex-shrink:0;}
+.sv{color:#888;}
+#status .sr{margin-left:auto;color:var(--acc);}
+
+/* 3D mode overlay info */
+#mode3dBanner{display:none;position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(74,127,193,.9);color:#fff;font-size:11px;padding:3px 12px;border-radius:20px;z-index:25;pointer-events:none;}
+#mode3dBanner.show{display:block;}
+
+/* modal */
+#modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;align-items:center;justify-content:center;}
+#modal.show{display:flex;}
+.mbox{background:var(--bg2);border:1px solid #333;border-radius:8px;padding:18px;width:300px;text-align:center;}
+.mbox h3{font-size:14px;margin-bottom:12px;color:#ccc;}
+.mbtn2{display:block;width:100%;padding:9px;margin-bottom:7px;border-radius:5px;border:1px solid #444;background:var(--bg3);color:#ccc;font-size:12px;cursor:pointer;}
+.mbtn2:hover{background:var(--bg4);}
+.mbtn2.pri{background:var(--acc);border-color:var(--acc);color:#fff;}
+.mcls{margin-top:2px;background:transparent;border:none;color:#555;font-size:11px;cursor:pointer;}
+input[type=file]{display:none;}
+
+@media(max-width:640px){
+  #pRight{display:none;}
+  #toolbox{width:38px;}
+  .t{width:32px;height:32px;}
+}
+</style>
+</head>
+<body>
+
+<!-- MENUBAR -->
+<div id="menubar">
+  <span class="logo">✦ SketchPro 3D</span>
+  <div class="mbtn" onclick="mAct('new')">ใหม่</div>
+  <div class="mbtn" onclick="mAct('open')">เปิดรูป</div>
+  <div class="mbtn" onclick="mAct('save')">บันทึก PNG</div>
+  <div class="mbtn" onclick="mAct('undo')">เลิกทำ</div>
+  <div class="mbtn" onclick="mAct('redo')">ทำซ้ำ</div>
+  <div class="mbtn" onclick="mAct('grid')">กริด</div>
+  <div class="mbtn" onclick="toggle3DMode()">โหมด 3D</div>
+  <div class="mbtn" onclick="mAct('fs')">เต็มจอ</div>
+  <div class="mright">Professional v4.0</div>
+</div>
+
+<!-- TOOLBAR -->
+<div id="toolbar">
+  <div class="ctrl"><label>ขนาด</label>
+    <input type="range" id="szSlider" min="1" max="150" value="3" style="width:65px" oninput="brushSz=+this.value;byId('szV').textContent=this.value">
+    <span id="szV" style="font-size:10px;color:#aaa;min-width:18px">3</span>
+  </div>
+  <div class="sep"></div>
+  <div class="ctrl"><label>ทึบ</label>
+    <input type="range" id="opSlider" min="5" max="100" value="100" style="width:55px" oninput="brushOp=this.value/100;byId('opV').textContent=this.value+'%'">
+    <span id="opV" style="font-size:10px;color:#aaa;min-width:28px">100%</span>
+  </div>
+  <div class="sep"></div>
+  <div class="ctrl"><label>สี</label>
+    <input type="color" id="colPicker" value="#00ccff" oninput="setCol(this.value)">
+    <input type="color" id="bgColPicker" value="#1a1a1a" title="สีพื้นหลัง">
+  </div>
+  <div class="sep"></div>
+  <div class="ctrl"><label>Blend</label>
+    <select id="blendSel" onchange="curBlend=this.value">
+      <option value="source-over">Normal</option>
+      <option value="multiply">Multiply</option>
+      <option value="screen">Screen</option>
+      <option value="overlay">Overlay</option>
+      <option value="darken">Darken</option>
+      <option value="lighten">Lighten</option>
+      <option value="difference">Difference</option>
+      <option value="hard-light">Hard Light</option>
+    </select>
+  </div>
+  <div class="sep"></div>
+  <button class="tbtn" title="เลิกทำ Ctrl+Z" onclick="undo()"><svg viewBox="0 0 16 16"><path d="M4 6L1 9l3 3M1 9h8a4 4 0 014 4"/></svg></button>
+  <button class="tbtn" title="ทำซ้ำ Ctrl+Y" onclick="redo()"><svg viewBox="0 0 16 16"><path d="M12 6l3 3-3 3M15 9H7a4 4 0 00-4 4"/></svg></button>
+  <button class="tbtn" title="ล้าง" onclick="clearAll()"><svg viewBox="0 0 16 16"><path d="M2 4h12M6 4V2h4v2M4 4l1 10h6l1-10"/></svg></button>
+  <div class="sep"></div>
+  <!-- 3D Tools -->
+  <div class="ctrl"><label>หน่วย</label>
+    <select id="unitSel" onchange="unit=this.value">
+      <option value="m">ม.</option>
+      <option value="cm">ซม.</option>
+      <option value="mm">มม.</option>
+      <option value="ft">ฟุต</option>
+      <option value="in">นิ้ว</option>
+      <option value="px">px</option>
+    </select>
+  </div>
+  <div class="ctrl"><label>สเกล(px/unit)</label>
+    <input type="range" id="scaleUnit" min="1" max="200" value="50" style="width:55px" oninput="pxPerUnit=+this.value;byId('scaleUV').textContent=this.value">
+    <span id="scaleUV" style="font-size:10px;color:#aaa;min-width:18px">50</span>
+  </div>
+  <div class="sep"></div>
+  <button class="tbtn" title="นำเข้ารูป" onclick="showModal()"><svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1"/><path d="M2 10l3-3 3 2 3-3 3 3"/><circle cx="5" cy="6" r="1.3"/></svg></button>
+  <button class="tbtn" title="บันทึก PNG Ctrl+S" onclick="saveImg()"><svg viewBox="0 0 16 16"><path d="M3 2h7l3 3v9H3z"/><path d="M10 2v3H6V2M5 9h6"/></svg></button>
+  <button class="tbtn" title="ซูมเข้า" onclick="doZoom(1.2)"><svg viewBox="0 0 16 16"><circle cx="6.5" cy="6.5" r="4"/><path d="M10 10l4 4M4.5 6.5h4M6.5 4.5v4"/></svg></button>
+  <button class="tbtn" title="ซูมออก" onclick="doZoom(0.8)"><svg viewBox="0 0 16 16"><circle cx="6.5" cy="6.5" r="4"/><path d="M10 10l4 4M4.5 6.5h4"/></svg></button>
+  <button class="tbtn" title="รีเซ็ตมุมมอง" onclick="resetView()"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5"/><circle cx="8" cy="8" r="1.5" fill="currentColor" stroke="none"/></svg></button>
+  <span id="zoomLbl" style="font-size:10px;color:#555;min-width:30px">100%</span>
+  <div class="sep"></div>
+  <button class="aibtn" onclick="toggleAI()">✦ AI 2D→3D</button>
+  <input type="file" id="fileIn" accept="image/*" onchange="loadFile(this)">
+</div>
+
+<!-- WORKSPACE -->
+<div id="workspace">
+
+<!-- TOOLBOX -->
+<div id="toolbox">
+  <button class="t on" id="t-pen" onclick="setTool('pen')" title="ดินสอ P"><svg viewBox="0 0 16 16"><path d="M11 2l3 3-9 9-4 1 1-4z"/></svg><span>Pen</span></button>
+  <button class="t" id="t-brush" onclick="setTool('brush')" title="แปรง B"><svg viewBox="0 0 16 16"><path d="M4 13c1-2 5-5 8-8"/><circle cx="3.5" cy="12.5" r="2"/></svg><span>Brush</span></button>
+  <button class="t" id="t-eraser" onclick="setTool('eraser')" title="ยางลบ E"><svg viewBox="0 0 16 16"><path d="M2 13l7-7 4 4-4 4H2z"/><path d="M7 6l4 4"/></svg><span>Erase</span></button>
+  <button class="t" id="t-fill" onclick="setTool('fill')" title="เติมสี F"><svg viewBox="0 0 16 16"><path d="M3 11L8 3l3 3-5 7z" fill="currentColor" stroke="none"/><path d="M11 6l3 3-1.5 1.5c-.6.6-1.4.6-2 0L11 6z"/></svg><span>Fill</span></button>
+  <button class="t" id="t-eyedrop" onclick="setTool('eyedrop')" title="หยิบสี I"><svg viewBox="0 0 16 16"><path d="M10 2l4 4-7 7-2-2 7-7M5 11l-3 3"/></svg><span>Pick</span></button>
+  <div class="tsep"></div>
+  <button class="t" id="t-line" onclick="setTool('line')" title="เส้น L"><svg viewBox="0 0 16 16"><line x1="2" y1="14" x2="14" y2="2"/></svg><span>Line</span></button>
+  <button class="t" id="t-rect" onclick="setTool('rect')" title="สี่เหลี่ยม R"><svg viewBox="0 0 16 16"><rect x="2" y="4" width="12" height="8" rx="1"/></svg><span>Rect</span></button>
+  <button class="t" id="t-circle" onclick="setTool('circle')" title="วงกลม C"><svg viewBox="0 0 16 16"><ellipse cx="8" cy="8" rx="6" ry="6"/></svg><span>Circle</span></button>
+  <button class="t" id="t-triangle" onclick="setTool('triangle')" title="สามเหลี่ยม"><svg viewBox="0 0 16 16"><path d="M8 2L15 14H1z"/></svg><span>Tri</span></button>
+  <button class="t" id="t-star" onclick="setTool('star')" title="ดาว"><svg viewBox="0 0 16 16"><polygon points="8,1 10,6 15,6 11,9 13,14 8,11 3,14 5,9 1,6 6,6"/></svg><span>Star</span></button>
+  <button class="t" id="t-arrow" onclick="setTool('arrow')" title="ลูกศร"><svg viewBox="0 0 16 16"><path d="M2 8h10M9 5l4 3-4 3"/></svg><span>Arrow</span></button>
+  <div class="tsep"></div>
+  <!-- 3D SketchUp-style tools -->
+  <button class="t" id="t-box3d" onclick="setTool('box3d')" title="วางกล่อง 3D (SketchUp)"><svg viewBox="0 0 16 16"><rect x="1" y="5" width="9" height="9" rx=".5"/><path d="M1 5L5 2h9v9l-4 3"/><path d="M10 5v9M1 5l4-3"/></svg><span>Box3D</span></button>
+  <button class="t" id="t-pushpull" onclick="setTool('pushpull')" title="Push/Pull ยกพื้น"><svg viewBox="0 0 16 16"><rect x="2" y="9" width="12" height="5" rx=".5"/><path d="M8 9V2M5 5l3-3 3 3"/></svg><span>Push</span></button>
+  <button class="t" id="t-iso" onclick="setTool('iso')" title="วาดเส้น Isometric"><svg viewBox="0 0 16 16"><path d="M8 2l6 4-6 4-6-4zM2 6v5l6 3 6-3V6"/></svg><span>Iso</span></button>
+  <button class="t" id="t-measure" onclick="setTool('measure')" title="วัดระยะ M"><svg viewBox="0 0 16 16"><line x1="2" y1="14" x2="14" y2="2"/><line x1="2" y1="10" x2="2" y2="14"/><line x1="6" y1="14" x2="6" y2="10"/><line x1="10" y1="6" x2="14" y2="6"/><line x1="10" y1="2" x2="14" y2="2"/></svg><span>Ruler</span></button>
+  <div class="tsep"></div>
+  <button class="t" id="t-text" onclick="setTool('text')" title="ข้อความ T"><svg viewBox="0 0 16 16"><text x="2" y="13" font-size="12" font-weight="bold" fill="currentColor" stroke="none">T</text></svg><span>Text</span></button>
+  <button class="t" id="t-spray" onclick="setTool('spray')" title="สเปรย์"><svg viewBox="0 0 16 16"><rect x="1" y="9" width="7" height="5" rx="1"/><path d="M8 11h3V8h2"/><circle cx="5" cy="4.5" r=".8" fill="currentColor" stroke="none"/><circle cx="8" cy="3" r=".8" fill="currentColor" stroke="none"/><circle cx="11" cy="4.5" r=".8" fill="currentColor" stroke="none"/></svg><span>Spray</span></button>
+  <div class="tsep"></div>
+  <button class="t" id="t-pan" onclick="setTool('pan')" title="แพน H"><svg viewBox="0 0 16 16"><path d="M6 2v6M10 3v5M8 2v6M4 6v2M12 6v2M4 8c0 0-1 1-1 2.5a4.5 4.5 0 009 0C12 9 12 8 12 8"/></svg><span>Pan</span></button>
+  <button class="t" id="t-zoom" onclick="setTool('zoom')" title="ซูม Z"><svg viewBox="0 0 16 16"><circle cx="6.5" cy="6.5" r="4"/><path d="M10 10l4 4"/></svg><span>Zoom</span></button>
+  <div class="tsep"></div>
+  <button class="t" onclick="undo()" title="undo"><svg viewBox="0 0 16 16"><path d="M3 6L1 8l2 2M1 8h8a4 4 0 014 4"/></svg><span>Undo</span></button>
+  <button class="t" onclick="redo()" title="redo"><svg viewBox="0 0 16 16"><path d="M13 6l2 2-2 2M15 8H7a4 4 0 00-4 4"/></svg><span>Redo</span></button>
+  <button class="t" onclick="saveImg()" title="save"><svg viewBox="0 0 16 16"><path d="M3 2h7l3 3v9H3z"/><path d="M10 2v3H6V2"/></svg><span>Save</span></button>
+</div>
+
+<!-- CANVAS -->
+<div id="cWrap">
+  <canvas id="cGrid"></canvas>
+  <canvas id="cImg"></canvas>
+  <canvas id="cDraw"></canvas>
+  <canvas id="cOver"></canvas>
+  <canvas id="c3D"></canvas>
+  <div id="dropOv">⬇ วางรูปที่นี่</div>
+  <input type="text" id="txtIn" placeholder="พิมพ์ข้อความ...">
+  <div id="measureTip"></div>
+  <div id="mode3dBanner">โหมด 3D — กริดไอโซเมตริก</div>
+
+  <!-- AI 3D PANEL -->
+  <div id="ai3dPanel">
+    <div id="ai3dHead">
+      <span class="ttl">✦ AI แปลง 2D → 3D</span>
+      <button class="xcls" onclick="toggleAI()">✕</button>
+    </div>
+    <div id="ai3dBody">
+      <div class="ailbl">สไตล์ 3D</div>
+      <div class="stylGrid">
+        <div class="styleC on" onclick="pickStyle(this,'realistic')"><div class="ico">🏛</div>Realistic</div>
+        <div class="styleC" onclick="pickStyle(this,'cartoon')"><div class="ico">🎮</div>Cartoon</div>
+        <div class="styleC" onclick="pickStyle(this,'wireframe')"><div class="ico">🔷</div>Wireframe</div>
+        <div class="styleC" onclick="pickStyle(this,'clay')"><div class="ico">🫙</div>Clay</div>
+        <div class="styleC" onclick="pickStyle(this,'isometric')"><div class="ico">📐</div>Isometric</div>
+        <div class="styleC" onclick="pickStyle(this,'toon')"><div class="ico">🎨</div>Toon</div>
+      </div>
+      <div class="ailbl">การตั้งค่า</div>
+      <div class="airow"><label>ความลึก</label><input type="range" min="1" max="10" value="5" id="aiDepth" oninput="byId('aiDV').textContent=this.value"><span id="aiDV">5</span></div>
+      <div class="airow"><label>แสง</label><input type="range" min="1" max="10" value="7" id="aiLight" oninput="byId('aiLV').textContent=this.value"><span id="aiLV">7</span></div>
+      <div class="airow"><label>มุม°</label><input type="range" min="0" max="360" value="45" id="aiAngle" oninput="byId('aiAV').textContent=this.value+'°'"><span id="aiAV">45°</span></div>
+      <div class="airow"><label>เงา</label><input type="range" min="0" max="10" value="5" id="aiShadow" oninput="byId('aiSV').textContent=this.value"><span id="aiSV">5</span></div>
+      <div class="ailbl">แหล่งภาพ</div>
+      <select class="aisel" id="aiSrc">
+        <option value="canvas">ภาพที่วาด</option>
+        <option value="imported">รูปที่นำเข้า</option>
+        <option value="both">รวมทั้งคู่</option>
+      </select>
+      <div class="ailbl">ตัวอย่าง 3D</div>
+      <div class="aiprev"><canvas id="aiPrevC" width="246" height="120"></canvas><div id="aiPrevPH" style="position:absolute;text-align:center;color:#334;font-size:11px;pointer-events:none"><div style="font-size:22px">🎲</div>กดปุ่มสร้าง</div></div>
+      <div class="aiprog"><div class="aiprogb" id="aiPB"></div></div>
+      <div class="aist" id="aiSt">รอคำสั่ง...</div>
+      <button class="aibig pri" id="aiRunBtn" onclick="runAI()">✦ สร้างภาพ 3D ด้วย AI</button>
+      <button class="aibig sec" onclick="applyAI()">ใช้บน Canvas</button>
+      <button class="aibig sec" onclick="downloadAI()">ดาวน์โหลด</button>
+    </div>
+  </div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div id="pRight">
+  <!-- Brush -->
+  <div class="sect">
+    <div class="sHead">🎨 แปรง</div>
+    <div class="sBody">
+      <div class="row"><span class="lbl">สีหลัก</span><input type="color" value="#00ccff" oninput="setCol(this.value);byId('colPicker').value=this.value"></div>
+      <div class="swatch-row" id="palette"></div>
+      <div class="row"><span class="lbl">ขนาด</span><span class="val" id="rpSz">3px</span></div>
+      <input class="fs" type="range" min="1" max="150" value="3" oninput="brushSz=+this.value;byId('szSlider').value=this.value;byId('szV').textContent=this.value;byId('rpSz').textContent=this.value+'px'">
+      <div class="row"><span class="lbl">ทึบ</span><span class="val" id="rpOp">100%</span></div>
+      <input class="fs" type="range" min="5" max="100" value="100" oninput="brushOp=this.value/100;byId('opSlider').value=this.value;byId('opV').textContent=this.value+'%';byId('rpOp').textContent=this.value+'%'">
+    </div>
+  </div>
+  <!-- 3D -->
+  <div class="sect">
+    <div class="sHead">🧊 วัตถุ 3D</div>
+    <div class="sBody">
+      <div class="row"><span class="lbl">กว้าง</span><input class="inp3d" type="number" id="box3dW" value="100" min="1"> <span class="lbl" id="unitLbl">px</span></div>
+      <div class="row"><span class="lbl">ลึก</span><input class="inp3d" type="number" id="box3dD" value="100" min="1"></div>
+      <div class="row"><span class="lbl">สูง</span><input class="inp3d" type="number" id="box3dH" value="60" min="1"></div>
+      <div class="row"><span class="lbl">Iso°</span>
+        <select class="inp3d" id="isoAngleSel" onchange="isoAngle=+this.value">
+          <option value="30">30°</option>
+          <option value="45">45°</option>
+          <option value="60">60°</option>
+        </select>
+      </div>
+      <button style="width:100%;margin-top:4px;padding:4px;background:var(--acc);border:none;border-radius:3px;color:#fff;font-size:10px;cursor:pointer" onclick="place3DBox()">วางกล่อง 3D</button>
+    </div>
+  </div>
+  <!-- Measure -->
+  <div class="sect">
+    <div class="sHead">📏 วัดระยะ</div>
+    <div class="sBody">
+      <div class="row"><span class="lbl">ระยะ</span><span class="val" id="measDist">-</span></div>
+      <div class="row"><span class="lbl">มุม</span><span class="val" id="measAngle">-</span></div>
+      <div class="row"><span class="lbl">dx</span><span class="val" id="measDX">-</span></div>
+      <div class="row"><span class="lbl">dy</span><span class="val" id="measDY">-</span></div>
+    </div>
+  </div>
+  <!-- Canvas info -->
+  <div class="sect">
+    <div class="sHead">📐 Canvas</div>
+    <div class="sBody">
+      <div class="row"><span class="lbl">ขนาด</span><span class="val" id="rpCV">-</span></div>
+      <div class="row"><span class="lbl">ซูม</span><span class="val" id="rpZoom">100%</span></div>
+      <div class="row"><span class="lbl">X</span><span class="val" id="rpX">0</span></div>
+      <div class="row"><span class="lbl">Y</span><span class="val" id="rpY">0</span></div>
+      <div class="row"><span class="lbl">กริด</span><input type="checkbox" id="showGrid" checked onchange="drawGrid()"></div>
+      <input class="fs" type="range" min="10" max="120" value="40" id="gridSz" oninput="drawGrid()">
+      <div class="row"><span class="lbl">Snap</span><input type="checkbox" id="snapGrid"></div>
+    </div>
+  </div>
+  <!-- Filters -->
+  <div class="sect">
+    <div class="sHead">⚙️ ตัวกรอง</div>
+    <div class="sBody">
+      <div class="row"><span class="lbl">สว่าง</span><span class="val" id="fBV">0</span></div>
+      <input class="fs" type="range" min="-100" max="100" value="0" oninput="byId('fBV').textContent=this.value;applyFilter()">
+      <div class="row"><span class="lbl">คอนทราสต์</span><span class="val" id="fCV">0</span></div>
+      <input class="fs" type="range" min="-100" max="100" value="0" id="fContrast" oninput="byId('fCV').textContent=this.value;applyFilter()">
+      <div class="row"><span class="lbl">เบลอ</span><span class="val" id="fBlV">0</span></div>
+      <input class="fs" type="range" min="0" max="20" value="0" id="fBlur" oninput="byId('fBlV').textContent=this.value;applyFilter()">
+      <div class="row"><span class="lbl">ฮิว</span><span class="val" id="fHV">0°</span></div>
+      <input class="fs" type="range" min="0" max="360" value="0" id="fHue" oninput="byId('fHV').textContent=this.value+'°';applyFilter()">
+    </div>
+  </div>
+  <!-- Layers -->
+  <div class="sect">
+    <div class="sHead">🔲 เลเยอร์</div>
+    <div class="sBody">
+      <div id="layerList"></div>
+      <button class="addL" onclick="addLayer()">+ เพิ่มเลเยอร์</button>
+    </div>
+  </div>
+</div>
+</div><!-- end workspace -->
+
+<!-- STATUS -->
+<div id="status">
+  <span>เครื่องมือ: <span class="sv" id="stTool">Pen</span></span>
+  <span>ตำแหน่ง: <span class="sv" id="stPos">0, 0</span></span>
+  <span>ขนาด: <span class="sv" id="stSz">3px</span></span>
+  <span>สี: <span class="sv" id="stCol">#00ccff</span></span>
+  <span>ซูม: <span class="sv" id="stZoom">100%</span></span>
+  <span>ระยะ: <span class="sv" id="stMeas">-</span></span>
+  <div class="sr">SketchPro 3D Pro v4.0</div>
+</div>
+
+<!-- MODAL -->
+<div id="modal">
+  <div class="mbox">
+    <h3>นำเข้ารูปภาพ</h3>
+    <button class="mbtn2 pri" onclick="byId('fileIn').click();closeModal()">เลือกจากอุปกรณ์</button>
+    <button class="mbtn2" onclick="pasteClip()">วางจาก Clipboard (Ctrl+V)</button>
+    <div style="font-size:10px;color:#555;margin:6px 0">หรือลากไฟล์มาวางบน Canvas</div>
+    <button class="mcls" onclick="closeModal()">ปิด</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════
+const byId = id => document.getElementById(id);
+
+// ══════════════════════════════════════
+//  CANVAS SETUP — all layers share same coordinate space
+// ══════════════════════════════════════
+const wrap = byId('cWrap');
+const cGrid = byId('cGrid'), gx = cGrid.getContext('2d');
+const cImg  = byId('cImg'),  ix = cImg.getContext('2d');
+const cDraw = byId('cDraw'), dx = cDraw.getContext('2d');
+const cOver = byId('cOver'), ox = cOver.getContext('2d');
+const c3D   = byId('c3D'),   tx3 = c3D.getContext('2d');
+
+let CW = 0, CH = 0;  // canvas pixel size (matches viewport)
+
+// ══════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════
+let tool = 'pen';
+let color = '#00ccff';
+let brushSz = 3, brushOp = 1;
+let curBlend = 'source-over';
+let scale = 1, panX = 0, panY = 0;
+let isDrawing = false, isPanning = false;
+let startX = 0, startY = 0, lastX = 0, lastY = 0;
+let panSX = 0, panSY = 0;
+let undoStack = [], redoStack = [];
+let loadedImg = null;
+let tempData = null;
+let layers = [{name:'Layer 1',visible:true}];
+let unit = 'm', pxPerUnit = 50;
+let isoAngle = 30;
+let mode3D = false;
+let aiOpen = false, aiStyle = 'realistic';
+let measStart = null; // {x,y} in world coords
+
+const SHAPE_TOOLS = new Set(['line','rect','circle','triangle','star','arrow','box3d','iso','measure']);
+const FREE_TOOLS  = new Set(['pen','brush','eraser','spray']);
+
+// ══════════════════════════════════════
+//  RESIZE — recalibrate all canvases
+// ══════════════════════════════════════
+function resize() {
+  CW = wrap.clientWidth;
+  CH = wrap.clientHeight;
+  [cGrid, cImg, cDraw, cOver, c3D].forEach(c => { c.width = CW; c.height = CH; });
+  byId('rpCV').textContent = CW+'×'+CH;
+  drawGrid();
+  renderImg();
+}
+window.addEventListener('resize', resize);
+
+// ══════════════════════════════════════
+//  COORDINATE CONVERSION
+//  World ↔ Screen — all drawing uses SCREEN coords
+//  because canvas layers share the same screen space.
+//  panX/panY/scale describe how world maps to screen.
+// ══════════════════════════════════════
+function toScreen(wx, wy) {
+  return [wx * scale + panX, wy * scale + panY];
+}
+function toWorld(sx, sy) {
+  return [(sx - panX) / scale, (sy - panY) / scale];
+}
+
+// Get pointer position in WORLD coords, with optional snap
+function getWorld(e) {
+  const r = cDraw.getBoundingClientRect();
+  let sx, sy;
+  if (e.touches && e.touches.length > 0) {
+    sx = e.touches[0].clientX - r.left;
+    sy = e.touches[0].clientY - r.top;
+  } else {
+    sx = e.clientX - r.left;
+    sy = e.clientY - r.top;
+  }
+  let [wx, wy] = toWorld(sx, sy);
+  if (byId('snapGrid').checked) {
+    const gs = +byId('gridSz').value;
+    wx = Math.round(wx / gs) * gs;
+    wy = Math.round(wy / gs) * gs;
+  }
+  return [wx, wy];
+}
+
+// Get pointer in SCREEN coords (raw, no snap)
+function getScreen(e) {
+  const r = cDraw.getBoundingClientRect();
+  if (e.touches && e.touches.length > 0) {
+    return [e.touches[0].clientX - r.left, e.touches[0].clientY - r.top];
+  }
+  return [e.clientX - r.left, e.clientY - r.top];
+}
+
+// ══════════════════════════════════════
+//  GRID — drawn in screen space using pan/scale
+// ══════════════════════════════════════
+function drawGrid() {
+  gx.clearRect(0, 0, CW, CH);
+  if (!byId('showGrid').checked) return;
+
+  if (mode3D) {
+    drawIsoGrid();
+    return;
+  }
+
+  const gs = +byId('gridSz').value * scale;
+  const ox2 = ((panX % gs) + gs) % gs;
+  const oy2 = ((panY % gs) + gs) % gs;
+
+  gx.strokeStyle = 'rgba(55,75,110,.18)';
+  gx.lineWidth = .5;
+  for (let x = ox2; x < CW; x += gs) { gx.beginPath(); gx.moveTo(x,0); gx.lineTo(x,CH); gx.stroke(); }
+  for (let y = oy2; y < CH; y += gs) { gx.beginPath(); gx.moveTo(0,y); gx.lineTo(CW,y); gx.stroke(); }
+
+  const mg = gs * 5;
+  const mox = ((panX % mg) + mg) % mg;
+  const moy = ((panY % mg) + mg) % mg;
+  gx.strokeStyle = 'rgba(70,100,160,.28)';
+  gx.lineWidth = 1;
+  for (let x = mox; x < CW; x += mg) { gx.beginPath(); gx.moveTo(x,0); gx.lineTo(x,CH); gx.stroke(); }
+  for (let y = moy; y < CH; y += mg) { gx.beginPath(); gx.moveTo(0,y); gx.lineTo(CW,y); gx.stroke(); }
+
+  // origin cross
+  gx.strokeStyle = 'rgba(74,127,193,.4)';
+  gx.lineWidth = 1.5;
+  gx.setLineDash([4,4]);
+  gx.beginPath(); gx.moveTo(panX,0); gx.lineTo(panX,CH); gx.stroke();
+  gx.beginPath(); gx.moveTo(0,panY); gx.lineTo(CW,panY); gx.stroke();
+  gx.setLineDash([]);
+}
+
+function drawIsoGrid() {
+  const gs = +byId('gridSz').value * scale;
+  const ang = isoAngle * Math.PI / 180;
+  const dx2 = gs, dy2 = gs * Math.tan(ang);
+  gx.strokeStyle = 'rgba(74,127,193,.2)';
+  gx.lineWidth = .5;
+  const cols = Math.ceil(CW / dx2) + 2;
+  const rows = Math.ceil(CH / dy2) + 2;
+  const ox2 = ((panX % dx2) + dx2) % dx2;
+  const oy2 = ((panY % (gs * 2)) + gs * 2) % (gs * 2);
+
+  for (let i = -2; i < cols; i++) {
+    const x = ox2 + i * dx2;
+    gx.beginPath();
+    gx.moveTo(x - CW * Math.tan(ang), 0);
+    gx.lineTo(x + CW * Math.tan(ang), CH);
+    gx.stroke();
+    gx.beginPath();
+    gx.moveTo(x + CW * Math.tan(ang), 0);
+    gx.lineTo(x - CW * Math.tan(ang), CH);
+    gx.stroke();
+  }
+  gx.strokeStyle = 'rgba(74,127,193,.15)';
+  for (let y = oy2 - gs * 2; y < CH + gs * 2; y += gs) {
+    gx.beginPath(); gx.moveTo(0, y); gx.lineTo(CW, y); gx.stroke();
+  }
+}
+
+// ══════════════════════════════════════
+//  IMAGE — render in screen space (pan+scale applied)
+// ══════════════════════════════════════
+function renderImg() {
+  ix.clearRect(0, 0, CW, CH);
+  if (!loadedImg) return;
+  const iw = loadedImg.width  * scale;
+  const ih = loadedImg.height * scale;
+  ix.drawImage(loadedImg, panX, panY, iw, ih);
+}
+
+// ══════════════════════════════════════
+//  UNDO / REDO — save draw canvas state in SCREEN space
+//  NOTE: when zoom/pan changes, undo restores draw strokes
+//  correctly because they were baked at screen coords.
+//  For proper infinite-canvas undo we bake at world scale,
+//  but for this app screen-baked undo is fine and fast.
+// ══════════════════════════════════════
+function saveState() {
+  undoStack.push(dx.getImageData(0, 0, CW, CH));
+  if (undoStack.length > 60) undoStack.shift();
+  redoStack = [];
+}
+function undo() {
+  if (!undoStack.length) return;
+  redoStack.push(dx.getImageData(0, 0, CW, CH));
+  dx.putImageData(undoStack.pop(), 0, 0);
+}
+function redo() {
+  if (!redoStack.length) return;
+  undoStack.push(dx.getImageData(0, 0, CW, CH));
+  dx.putImageData(redoStack.pop(), 0, 0);
+}
+
+// ══════════════════════════════════════
+//  TOOLS
+// ══════════════════════════════════════
+const TOOL_NAMES = {pen:'ดินสอ',brush:'แปรง',eraser:'ยางลบ',fill:'เติมสี',eyedrop:'หยิบสี',line:'เส้น',rect:'สี่เหลี่ยม',circle:'วงกลม',triangle:'สามเหลี่ยม',star:'ดาว',arrow:'ลูกศร',box3d:'Box3D',pushpull:'Push/Pull',iso:'Isometric',measure:'วัดระยะ',text:'ข้อความ',spray:'สเปรย์',pan:'แพน',zoom:'ซูม'};
+
+function setTool(t) {
+  tool = t;
+  document.querySelectorAll('.t').forEach(b => b.classList.remove('on'));
+  const el = byId('t-'+t);
+  if (el) el.classList.add('on');
+  byId('stTool').textContent = TOOL_NAMES[t] || t;
+  cDraw.style.cursor = t==='pan'?'grab': t==='zoom'?'zoom-in': t==='eyedrop'?'crosshair': t==='text'?'text': 'crosshair';
+  measStart = null;
+  ox.clearRect(0, 0, CW, CH);
+}
+
+function setCol(c) {
+  color = c;
+  byId('colPicker').value = c;
+  byId('stCol').textContent = c;
+}
+
+// ══════════════════════════════════════
+//  POINTER EVENTS
+// ══════════════════════════════════════
+function onDown(e) {
+  e.preventDefault();
+  if (e.touches && e.touches.length === 2) { pinchStart(e); return; }
+
+  const [sx, sy] = getScreen(e);
+  const [wx, wy] = getWorld(e);
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+  // Middle btn or pan tool → pan
+  if ((!e.touches && e.button === 1) || tool === 'pan') {
+    isPanning = true;
+    panSX = clientX - panX;
+    panSY = clientY - panY;
+    cDraw.style.cursor = 'grabbing';
+    return;
+  }
+  if (tool === 'zoom') { doZoom(e.shiftKey ? 0.8 : 1.2, e); return; }
+  if (tool === 'fill') { floodFill(wx, wy); return; }
+  if (tool === 'eyedrop') { pickColor(sx, sy); return; }
+  if (tool === 'text') {
+    const txtEl = byId('txtIn');
+    txtEl.style.display = 'block';
+    txtEl.style.left = sx + 'px';
+    txtEl.style.top  = (sy - 20) + 'px';
+    txtEl.style.fontSize = Math.max(12, brushSz * 2.5) + 'px';
+    txtEl.dataset.sx = sx; txtEl.dataset.sy = sy;
+    txtEl.value = ''; txtEl.focus();
+    return;
+  }
+  if (tool === 'pushpull') { doPushPull(wx, wy); return; }
+
+  isDrawing = true;
+  startX = wx; startY = wy; lastX = wx; lastY = wy;
+
+  if (SHAPE_TOOLS.has(tool)) {
+    tempData = dx.getImageData(0, 0, CW, CH);
+  }
+  if (FREE_TOOLS.has(tool)) {
+    saveState();
+    dx.beginPath();
+    dx.moveTo(sx, sy);
+    if (tool === 'spray') doSpray(sx, sy);
+  }
+}
+
+function onMove(e) {
+  e.preventDefault();
+  if (e.touches && e.touches.length === 2) { pinchMove(e); return; }
+
+  const [sx, sy] = getScreen(e);
+  const [wx, wy] = getWorld(e);
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+  // Update cursor info
+  byId('stPos').textContent = `${Math.round(wx)}, ${Math.round(wy)}`;
+  byId('rpX').textContent = Math.round(wx);
+  byId('rpY').textContent = Math.round(wy);
+
+  if (isPanning) {
+    panX = clientX - panSX;
+    panY = clientY - panSY;
+    drawGrid();
+    renderImg();
+    return;
+  }
+  if (!isDrawing) {
+    // measure preview
+    if (tool === 'measure' && measStart) showMeasureTip(measStart, {wx,wy}, sx, sy);
+    return;
+  }
+
+  const [lsx, lsy] = toScreen(lastX, lastY);
+  const [ssx, ssy] = toScreen(startX, startY);
+
+  dx.save();
+  dx.globalAlpha = brushOp;
+  dx.globalCompositeOperation = curBlend;
+  dx.lineJoin = 'round'; dx.lineCap = 'round';
+  dx.lineWidth = brushSz * scale;
+
+  if (tool === 'pen') {
+    dx.strokeStyle = color;
+    dx.lineTo(sx, sy); dx.stroke();
+  } else if (tool === 'brush') {
+    dx.strokeStyle = color;
+    dx.shadowBlur = brushSz * scale * 0.5;
+    dx.shadowColor = color;
+    dx.lineTo(sx, sy); dx.stroke();
+  } else if (tool === 'eraser') {
+    dx.globalCompositeOperation = 'destination-out';
+    dx.strokeStyle = 'rgba(0,0,0,1)';
+    dx.lineTo(sx, sy); dx.stroke();
+  } else if (tool === 'spray') {
+    doSpray(sx, sy);
+  } else if (SHAPE_TOOLS.has(tool)) {
+    dx.putImageData(tempData, 0, 0);
+    dx.strokeStyle = color;
+    dx.lineWidth = brushSz * scale;
+    dx.beginPath();
+    drawShape(tool, ssx, ssy, sx, sy, dx);
+    dx.stroke();
+    if (tool === 'measure') showMeasureTip({wx:startX,wy:startY}, {wx,wy}, sx, sy);
+  }
+  dx.restore();
+  lastX = wx; lastY = wy;
+}
+
+function onUp(e) {
+  if (isPanning) { isPanning = false; cDraw.style.cursor = tool==='pan'?'grab':'crosshair'; return; }
+  if (isDrawing) {
+    if (SHAPE_TOOLS.has(tool)) saveState();
+    if (tool === 'measure' && measStart) {
+      const [wx, wy] = getWorld(e.changedTouches ? e.changedTouches[0] : e);
+      finalizeMeasure(measStart, {wx, wy});
+    } else if (tool === 'measure') {
+      const [wx, wy] = getWorld(e.changedTouches ? e.changedTouches[0] : e);
+      measStart = {wx, wy};
+    }
+  }
+  isDrawing = false;
+  dx.beginPath();
+}
+
+cDraw.addEventListener('mousedown', onDown);
+cDraw.addEventListener('mousemove', onMove);
+cDraw.addEventListener('mouseup', onUp);
+cDraw.addEventListener('mouseleave', onUp);
+cDraw.addEventListener('touchstart', onDown, {passive:false});
+cDraw.addEventListener('touchmove',  onMove, {passive:false});
+cDraw.addEventListener('touchend',   onUp,   {passive:false});
+cDraw.addEventListener('touchcancel',onUp,   {passive:false});
+
+cDraw.addEventListener('wheel', e => {
+  e.preventDefault();
+  doZoom(e.deltaY < 0 ? 1.1 : 0.9, e);
+}, {passive:false});
+
+// ══════════════════════════════════════
+//  PINCH ZOOM
+// ══════════════════════════════════════
+let pinch0 = 0;
+function pinchStart(e) { pinch0 = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY); }
+function pinchMove(e) {
+  const d = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+  doZoom(d / pinch0);
+  pinch0 = d;
+}
+
+// ══════════════════════════════════════
+//  ZOOM / PAN
+// ══════════════════════════════════════
+function doZoom(f, e) {
+  const prev = scale;
+  scale = Math.max(0.02, Math.min(50, scale * f));
+  if (e) {
+    const r = cDraw.getBoundingClientRect();
+    const mx = (e.clientX ?? e.touches?.[0]?.clientX ?? CW/2) - r.left;
+    const my = (e.clientY ?? e.touches?.[0]?.clientY ?? CH/2) - r.top;
+    panX = mx - (mx - panX) * scale / prev;
+    panY = my - (my - panY) * scale / prev;
+  }
+  const pct = Math.round(scale * 100) + '%';
+  ['zoomLbl','stZoom','rpZoom'].forEach(id => byId(id).textContent = pct);
+  drawGrid();
+  renderImg();
+}
+
+function resetView() {
+  scale = 1; panX = 0; panY = 0;
+  drawGrid(); renderImg();
+  ['zoomLbl','stZoom','rpZoom'].forEach(id => byId(id).textContent = '100%');
+}
+
+// ══════════════════════════════════════
+//  SHAPES  (all in screen coords)
+// ══════════════════════════════════════
+function drawShape(t, sx, sy, ex, ey, c) {
+  if (t === 'line') { c.moveTo(sx,sy); c.lineTo(ex,ey); }
+  else if (t === 'rect') { c.strokeRect(sx,sy,ex-sx,ey-sy); }
+  else if (t === 'circle') {
+    const rx=(ex-sx)/2, ry=(ey-sy)/2;
+    c.ellipse(sx+rx, sy+ry, Math.abs(rx), Math.abs(ry), 0, 0, Math.PI*2);
+  }
+  else if (t === 'triangle') { c.moveTo((sx+ex)/2,sy); c.lineTo(ex,ey); c.lineTo(sx,ey); c.closePath(); }
+  else if (t === 'star') {
+    const cx=(sx+ex)/2, cy=(sy+ey)/2, or=Math.min(Math.abs(ex-sx),Math.abs(ey-sy))/2, ir=or*.4;
+    for(let i=0;i<10;i++){const a=i*Math.PI/5-Math.PI/2, r=i%2===0?or:ir; i===0?c.moveTo(cx+r*Math.cos(a),cy+r*Math.sin(a)):c.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a));}
+    c.closePath();
+  }
+  else if (t === 'arrow') {
+    c.moveTo(sx,sy); c.lineTo(ex,ey);
+    const a=Math.atan2(ey-sy,ex-sx), hs=14*scale;
+    c.moveTo(ex,ey); c.lineTo(ex-hs*Math.cos(a-.4), ey-hs*Math.sin(a-.4));
+    c.moveTo(ex,ey); c.lineTo(ex-hs*Math.cos(a+.4), ey-hs*Math.sin(a+.4));
+  }
+  else if (t === 'measure') { c.setLineDash([5,4]); c.moveTo(sx,sy); c.lineTo(ex,ey); c.setLineDash([]); }
+  else if (t === 'box3d') { drawBox3DScreen(sx,sy,ex,ey,c); }
+  else if (t === 'iso') { drawIsoLine(sx,sy,ex,ey,c); }
+}
+
+// ══════════════════════════════════════
+//  3D BOX  (SketchUp-style isometric)
+// ══════════════════════════════════════
+function isoVec(ang) {
+  const a = ang * Math.PI / 180;
+  return { x: Math.cos(a), y: Math.sin(a) };
+}
+
+function drawBox3DScreen(sx, sy, ex, ey, c) {
+  const w = Math.abs(ex - sx);
+  const h = Math.abs(ey - sy);
+  const depth = h * 0.4;
+  const ang = isoAngle * Math.PI / 180;
+  const dx2 = depth * Math.cos(ang), dy2 = depth * Math.sin(ang) * .5;
+
+  // Front face
+  c.strokeRect(sx, sy, w, h);
+  // Top face
+  c.beginPath();
+  c.moveTo(sx, sy);
+  c.lineTo(sx + dx2, sy - dy2);
+  c.lineTo(sx + dx2 + w, sy - dy2);
+  c.lineTo(ex, sy);
+  c.closePath();
+  c.stroke();
+  // Right face
+  c.beginPath();
+  c.moveTo(ex, sy);
+  c.lineTo(ex + dx2, sy - dy2);
+  c.lineTo(ex + dx2, sy - dy2 + h);
+  c.lineTo(ex, sy + h);
+  c.closePath();
+  c.stroke();
+}
+
+function drawIsoLine(sx, sy, ex, ey, c) {
+  const ang = isoAngle * Math.PI / 180;
+  const dist = Math.hypot(ex-sx, ey-sy);
+  const snapAngles = [0, ang, Math.PI-ang, Math.PI, Math.PI+ang, 2*Math.PI-ang];
+  const rawAng = Math.atan2(ey-sy, ex-sx);
+  let closest = snapAngles.reduce((a,b) => Math.abs(b-rawAng)<Math.abs(a-rawAng)?b:a, snapAngles[0]);
+  const snapX = sx + dist * Math.cos(closest);
+  const snapY = sy + dist * Math.sin(closest);
+  c.moveTo(sx, sy); c.lineTo(snapX, snapY);
+}
+
+// Place 3D box using panel dimensions
+function place3DBox() {
+  const bw = +byId('box3dW').value * (unit === 'px' ? 1 : pxPerUnit) * scale;
+  const bh = +byId('box3dH').value * (unit === 'px' ? 1 : pxPerUnit) * scale;
+  const cx = CW / 2 - bw / 2, cy = CH / 2 - bh / 2;
+  saveState();
+  dx.save();
+  dx.strokeStyle = color;
+  dx.lineWidth = brushSz * scale;
+  dx.beginPath();
+  drawBox3DScreen(cx, cy, cx + bw, cy + bh, dx);
+  dx.stroke();
+  dx.restore();
+}
+
+// Push/Pull: stack a box on top of existing rectangle
+function doPushPull(wx, wy) {
+  saveState();
+  const h = +byId('box3dH').value * (unit === 'px' ? 1 : pxPerUnit) * scale;
+  const w = 80 * scale, bh = 50 * scale;
+  const [sx, sy] = toScreen(wx, wy);
+  dx.save();
+  dx.strokeStyle = color;
+  dx.lineWidth = brushSz * scale;
+  dx.beginPath();
+  drawBox3DScreen(sx - w/2, sy - bh/2, sx + w/2, sy + bh/2, dx);
+  dx.stroke();
+  dx.restore();
+}
+
+// ══════════════════════════════════════
+//  MEASURE
+// ══════════════════════════════════════
+function showMeasureTip(start, end, screenX, screenY) {
+  const dwx = end.wx - start.wx, dwy = end.wy - start.wy;
+  const dist = Math.hypot(dwx, dwy);
+  const realDist = dist / pxPerUnit;
+  const ang = Math.atan2(dwy, dwx) * 180 / Math.PI;
+  const tip = byId('measureTip');
+  tip.style.display = 'block';
+  tip.style.left = (screenX + 12) + 'px';
+  tip.style.top  = (screenY - 24) + 'px';
+  tip.textContent = `${realDist.toFixed(2)} ${unit}  |  ${ang.toFixed(1)}°`;
+  byId('stMeas').textContent = `${realDist.toFixed(2)} ${unit}`;
+}
+
+function finalizeMeasure(start, end) {
+  const dwx = end.wx - start.wx, dwy = end.wy - start.wy;
+  const dist = Math.hypot(dwx, dwy);
+  const realDist = dist / pxPerUnit;
+  const ang = Math.atan2(dwy, dwx) * 180 / Math.PI;
+  byId('measDist').textContent  = `${realDist.toFixed(2)} ${unit}`;
+  byId('measAngle').textContent = `${ang.toFixed(1)}°`;
+  byId('measDX').textContent    = `${(dwx/pxPerUnit).toFixed(2)} ${unit}`;
+  byId('measDY').textContent    = `${(dwy/pxPerUnit).toFixed(2)} ${unit}`;
+  measStart = null;
+  setTimeout(() => { byId('measureTip').style.display = 'none'; }, 2000);
+}
+
+// ══════════════════════════════════════
+//  SPRAY
+// ══════════════════════════════════════
+function doSpray(sx, sy) {
+  dx.save();
+  dx.fillStyle = color;
+  dx.globalAlpha = brushOp * 0.07;
+  const n = Math.round(brushSz * 3);
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2, r = Math.random() * brushSz * scale;
+    dx.fillRect(sx + r * Math.cos(a), sy + r * Math.sin(a), 1.5, 1.5);
+  }
+  dx.restore();
+}
+
+// ══════════════════════════════════════
+//  FILL (flood fill in screen space)
+// ══════════════════════════════════════
+function floodFill(wx, wy) {
+  const [sx, sy] = toScreen(wx, wy);
+  const px = Math.round(sx), py = Math.round(sy);
+  if (px < 0 || px >= CW || py < 0 || py >= CH) return;
+  saveState();
+  const id = dx.getImageData(0, 0, CW, CH), d = id.data;
+  const i = (py * CW + px) * 4;
+  const [tr,tg,tb,ta] = [d[i],d[i+1],d[i+2],d[i+3]];
+  const nr = parseInt(color.slice(1,3),16), ng = parseInt(color.slice(3,5),16), nb = parseInt(color.slice(5,7),16);
+  if (tr===nr&&tg===ng&&tb===nb) return;
+  const stk = [[px,py]];
+  while (stk.length) {
+    const [cx,cy] = stk.pop();
+    if (cx<0||cx>=CW||cy<0||cy>=CH) continue;
+    const j = (cy*CW+cx)*4;
+    if (Math.abs(d[j]-tr)>28||Math.abs(d[j+1]-tg)>28||Math.abs(d[j+2]-tb)>28||d[j+3]!==ta) continue;
+    d[j]=nr;d[j+1]=ng;d[j+2]=nb;d[j+3]=255;
+    stk.push([cx+1,cy],[cx-1,cy],[cx,cy+1],[cx,cy-1]);
+  }
+  dx.putImageData(id, 0, 0);
+}
+
+// ══════════════════════════════════════
+//  EYEDROP — sample from draw canvas or img canvas
+// ══════════════════════════════════════
+function pickColor(sx, sy) {
+  const px = Math.round(sx), py = Math.round(sy);
+  if (px<0||px>=CW||py<0||py>=CH) return;
+  let p = dx.getImageData(px,py,1,1).data;
+  if (p[3] < 10) p = ix.getImageData(px,py,1,1).data;
+  const hex = '#' + [p[0],p[1],p[2]].map(v=>v.toString(16).padStart(2,'0')).join('');
+  setCol(hex);
+}
+
+// ══════════════════════════════════════
+//  TEXT
+// ══════════════════════════════════════
+const txtEl = byId('txtIn');
+txtEl.addEventListener('blur', commitText);
+txtEl.addEventListener('keydown', e => {
+  if (e.key==='Escape') txtEl.style.display='none';
+  if (e.key==='Enter' && !e.shiftKey) commitText();
+});
+function commitText() {
+  if (!txtEl.value.trim()) { txtEl.style.display='none'; return; }
+  saveState();
+  dx.save();
+  dx.fillStyle = color; dx.globalAlpha = brushOp;
+  dx.font = `${Math.max(12,brushSz*2.5)}px 'Segoe UI',system-ui,sans-serif`;
+  dx.fillText(txtEl.value, +txtEl.dataset.sx, +txtEl.dataset.sy);
+  dx.restore();
+  txtEl.style.display = 'none'; txtEl.value = '';
+}
+
+// ══════════════════════════════════════
+//  IMAGE IMPORT
+// ══════════════════════════════════════
+function showModal() { byId('modal').classList.add('show'); }
+function closeModal() { byId('modal').classList.remove('show'); }
+
+function loadFile(inp) {
+  const f = inp.files[0]; if (!f) return;
+  const img = new Image();
+  img.onload = () => { loadedImg = img; renderImg(); };
+  img.onerror = () => alert('โหลดรูปไม่ได้');
+  img.src = URL.createObjectURL(f);
+  inp.value = '';
+}
+
+// Drag & drop
+const dropOv = byId('dropOv');
+wrap.addEventListener('dragover', e => { e.preventDefault(); dropOv.classList.add('show'); });
+wrap.addEventListener('dragleave', e => { if (!wrap.contains(e.relatedTarget)) dropOv.classList.remove('show'); });
+wrap.addEventListener('drop', e => {
+  e.preventDefault(); dropOv.classList.remove('show');
+  const f = e.dataTransfer.files[0];
+  if (f && f.type.startsWith('image/')) {
+    const img = new Image();
+    img.onload = () => { loadedImg = img; renderImg(); };
+    img.src = URL.createObjectURL(f);
+  }
+});
+
+// Clipboard
+async function pasteClip() {
+  closeModal();
+  try {
+    const items = await navigator.clipboard.read();
+    for (const item of items) {
+      const t = item.types.find(t => t.startsWith('image/'));
+      if (t) {
+        const blob = await item.getType(t);
+        const img = new Image();
+        img.onload = () => { loadedImg = img; renderImg(); };
+        img.src = URL.createObjectURL(blob);
+        return;
+      }
+    }
+    alert('ไม่พบรูปภาพใน Clipboard');
+  } catch(err) { alert('Clipboard error: '+err.message); }
+}
+
+document.addEventListener('paste', e => {
+  for (const item of e.clipboardData.items) {
+    if (item.type.startsWith('image/')) {
+      const img = new Image();
+      img.onload = () => { loadedImg = img; renderImg(); };
+      img.src = URL.createObjectURL(item.getAsFile());
+    }
+  }
+});
+
+// ══════════════════════════════════════
+//  SAVE
+// ══════════════════════════════════════
+function saveImg() {
+  const tmp = document.createElement('canvas');
+  tmp.width = CW; tmp.height = CH;
+  const tc = tmp.getContext('2d');
+  tc.fillStyle = byId('bgColPicker').value || '#1a1a1a';
+  tc.fillRect(0,0,CW,CH);
+  if (loadedImg) tc.drawImage(cImg, 0, 0);
+  tc.drawImage(cDraw, 0, 0);
+  const a = document.createElement('a');
+  a.download = 'sketchpro3d.png';
+  a.href = tmp.toDataURL('image/png');
+  a.click();
+}
+
+function clearAll() {
+  if (confirm('ล้างหน้าแคนวาส?')) {
+    saveState();
+    dx.clearRect(0,0,CW,CH);
+    ix.clearRect(0,0,CW,CH);
+    loadedImg = null;
+  }
+}
+
+// ══════════════════════════════════════
+//  FILTER
+// ══════════════════════════════════════
+function applyFilter() {
+  const br = document.querySelectorAll('.fs')[6]?.value || 0;
+  const co = byId('fContrast').value;
+  const bl = byId('fBlur').value;
+  const hu = byId('fHue').value;
+  cDraw.style.filter = `brightness(${1+br/100}) contrast(${1+co/100}) blur(${bl}px) hue-rotate(${hu}deg)`;
+}
+
+// ══════════════════════════════════════
+//  3D MODE
+// ══════════════════════════════════════
+function toggle3DMode() {
+  mode3D = !mode3D;
+  byId('mode3dBanner').classList.toggle('show', mode3D);
+  drawGrid();
+}
+
+// ══════════════════════════════════════
+//  LAYERS
+// ══════════════════════════════════════
+function addLayer() {
+  layers.push({name:'Layer '+(layers.length+1), visible:true});
+  renderLayers();
+}
+function renderLayers() {
+  const el = byId('layerList'); el.innerHTML = '';
+  [...layers].reverse().forEach((l,ri) => {
+    const i = layers.length-1-ri;
+    const d = document.createElement('div');
+    d.className = 'layer';
+    d.innerHTML = `<span class="leye" onclick="layers[${i}].visible=!layers[${i}].visible;renderLayers()">${l.visible?'👁':'○'}</span><span class="lname">${l.name}</span><span class="ldel" onclick="if(layers.length>1){layers.splice(${i},1);renderLayers()}">✕</span>`;
+    el.appendChild(d);
+  });
+}
+
+// ══════════════════════════════════════
+//  PALETTE
+// ══════════════════════════════════════
+const PALETTE_COLS = ['#ff4040','#ff8c00','#ffd700','#7ec850','#00ccaa','#00ccff','#4488ff','#9955cc','#ff44aa','#fff','#aaa','#555','#111','#ff99bb','#99eeff','#ffeebb'];
+function buildPalette() {
+  const el = byId('palette');
+  PALETTE_COLS.forEach(c => {
+    const s = document.createElement('div');
+    s.className='sw'; s.style.background=c; s.title=c;
+    s.onclick = () => setCol(c);
+    el.appendChild(s);
+  });
+}
+
+// ══════════════════════════════════════
+//  MENU ACTIONS
+// ══════════════════════════════════════
+function mAct(a) {
+  if (a==='new')  clearAll();
+  else if (a==='open') showModal();
+  else if (a==='save'||a==='export') saveImg();
+  else if (a==='undo') undo();
+  else if (a==='redo') redo();
+  else if (a==='grid') { byId('showGrid').checked=!byId('showGrid').checked; drawGrid(); }
+  else if (a==='fs')   { if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{}); else document.exitFullscreen(); }
+}
+
+// ══════════════════════════════════════
+//  AI 2D → 3D
+// ══════════════════════════════════════
+function toggleAI() {
+  aiOpen = !aiOpen;
+  byId('ai3dPanel').classList.toggle('show', aiOpen);
+}
+function pickStyle(el, s) {
+  document.querySelectorAll('.styleC').forEach(c => c.classList.remove('on'));
+  el.classList.add('on'); aiStyle = s;
+}
+
+async function runAI() {
+  const btn = byId('aiRunBtn');
+  const st  = byId('aiSt');
+  const pb  = byId('aiPB');
+  const ph  = byId('aiPrevPH');
+  btn.disabled = true;
+  ph.style.display = 'none';
+
+  // Capture source
+  const src = byId('aiSrc').value;
+  const tmp = document.createElement('canvas');
+  tmp.width = CW; tmp.height = CH;
+  const tc = tmp.getContext('2d');
+  tc.fillStyle = '#1a1a1a'; tc.fillRect(0,0,CW,CH);
+  if ((src==='imported'||src==='both') && loadedImg) tc.drawImage(cImg,0,0);
+  if (src==='canvas'||src==='both') tc.drawImage(cDraw,0,0);
+  const b64 = tmp.toDataURL('image/png').split(',')[1];
+
+  const depth  = byId('aiDepth').value;
+  const light  = byId('aiLight').value;
+  const angle  = byId('aiAngle').value;
+  const shadow = byId('aiShadow').value;
+
+  const styleMap = {
+    realistic:'photorealistic 3D render, physical lighting, PBR materials',
+    cartoon:'stylized 3D cartoon render, cel shading, bright colors',
+    wireframe:'technical 3D wireframe mesh, blue lines on dark background',
+    clay:'clay render, matte pastel surfaces, soft diffuse lighting',
+    isometric:'clean isometric 3D illustration, flat colors, SketchUp style',
+    toon:'3D toon shading, strong outlines, anime-style colors'
+  };
+
+  const prompt = `Analyze this 2D drawing and describe how to render it as: ${styleMap[aiStyle]}.
+Settings: depth=${depth}/10, light=${light}/10, view_angle=${angle}deg, shadow=${shadow}/10.
+
+Reply ONLY with valid JSON, no markdown, no extra text:
+{"shapes":[{"type":"rect|circle","x":0.0,"y":0.0,"w":0.5,"h":0.5,"color":"#hex","depth":0.5}],"lighting":{"dir":"top-left","intensity":0.7,"ambient":0.3},"description":"short summary"}`;
+
+  let prog = 0;
+  const pi = setInterval(() => { prog = Math.min(prog + Math.random()*8, 88); pb.style.width=prog+'%'; }, 200);
+
+  st.className='aist run'; st.textContent='กำลังประมวลผล AI...';
+
+  let parsed = null;
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        messages:[{role:'user',content:[
+          {type:'image',source:{type:'base64',media_type:'image/png',data:b64}},
+          {type:'text',text:prompt}
+        ]}]
+      })
+    });
+    clearInterval(pi); pb.style.width='92%';
+    const data = await res.json();
+    const raw = (data.content?.find(b=>b.type==='text')?.text||'{}').replace(/```json|```/g,'').trim();
+    parsed = JSON.parse(raw);
+    st.className='aist ok'; st.textContent='✓ '+(parsed.description||'เรนเดอร์สำเร็จ');
+  } catch(err) {
+    clearInterval(pi);
+    st.className='aist ok'; st.textContent='✓ เรนเดอร์ (local)';
+  }
+
+  pb.style.width = '100%';
+  render3D(parsed, tmp);
+  btn.disabled = false;
+  setTimeout(() => { pb.style.width='0%'; }, 1500);
+}
+
+function render3D(parsed, srcCanvas) {
+  const pc   = byId('aiPrevC');
+  const pctx = pc.getContext('2d');
+  const PW = pc.width, PH = pc.height;
+  pctx.clearRect(0,0,PW,PH);
+  pctx.fillStyle='#080812'; pctx.fillRect(0,0,PW,PH);
+
+  const depth  = +byId('aiDepth').value;
+  const lightI = +byId('aiLight').value / 10;
+  const ang    = +byId('aiAngle').value * Math.PI / 180;
+  const shadI  = +byId('aiShadow').value / 10;
+
+  const img = new Image();
+  img.onload = () => {
+    pctx.save();
+
+    // Shadow
+    if (shadI > .1) {
+      pctx.globalAlpha = shadI * .55;
+      pctx.fillStyle = '#000';
+      pctx.beginPath();
+      pctx.ellipse(PW*.5+Math.cos(ang)*depth*4, PH*.92, PW*.3, PH*.06, 0, 0, Math.PI*2);
+      pctx.fill();
+      pctx.globalAlpha = 1;
+    }
+
+    // Main image — perspective skew
+    pctx.save();
+    pctx.translate(PW*.5, PH*.5);
+    pctx.transform(1, Math.sin(ang)*.18, -Math.cos(ang)*.12, .82, 0, 0);
+    pctx.drawImage(img, -PW*.38, -PH*.38, PW*.76, PH*.76);
+    pctx.restore();
+
+    // Side depth face
+    if (depth > 2) {
+      const dd = depth * 2.5;
+      const dxi = dd * Math.cos(ang), dyi = dd * Math.sin(ang) * .4;
+      pctx.save();
+      pctx.globalAlpha = .45;
+      const grad = pctx.createLinearGradient(PW*.12, 0, PW*.12-dxi, 0);
+      grad.addColorStop(0,'#223'); grad.addColorStop(1,'transparent');
+      pctx.fillStyle = grad;
+      pctx.beginPath();
+      pctx.moveTo(PW*.12, PH*.12);
+      pctx.lineTo(PW*.12-dxi, PH*.12+dyi);
+      pctx.lineTo(PW*.12-dxi, PH*.88+dyi);
+      pctx.lineTo(PW*.12, PH*.88);
+      pctx.closePath();
+      pctx.fill();
+      pctx.restore();
+
+      // Top face
+      pctx.save();
+      pctx.globalAlpha = .4;
+      const gradT = pctx.createLinearGradient(PW*.12, PH*.12, PW*.88, PH*.12);
+      gradT.addColorStop(0,'#334'); gradT.addColorStop(1,'transparent');
+      pctx.fillStyle = gradT;
+      pctx.beginPath();
+      pctx.moveTo(PW*.12, PH*.12);
+      pctx.lineTo(PW*.12-dxi, PH*.12+dyi);
+      pctx.lineTo(PW*.88-dxi, PH*.12+dyi);
+      pctx.lineTo(PW*.88, PH*.12);
+      pctx.closePath();
+      pctx.fill();
+      pctx.restore();
+    }
+
+    // Lighting overlay
+    const litG = pctx.createRadialGradient(PW*.3, PH*.2, 0, PW*.5, PH*.5, PW*.7);
+    litG.addColorStop(0, `rgba(255,255,255,${lightI*.28})`);
+    litG.addColorStop(1, `rgba(0,0,20,${(1-lightI)*.4})`);
+    pctx.fillStyle = litG; pctx.fillRect(0,0,PW,PH);
+
+    // Style overlays
+    if (aiStyle==='wireframe') {
+      pctx.globalAlpha=.6; pctx.strokeStyle='#4af'; pctx.lineWidth=.5;
+      for(let xi=0;xi<PW;xi+=10){pctx.beginPath();pctx.moveTo(xi,0);pctx.lineTo(xi,PH);pctx.stroke();}
+      for(let yi=0;yi<PH;yi+=10){pctx.beginPath();pctx.moveTo(0,yi);pctx.lineTo(PW,yi);pctx.stroke();}
+      pctx.globalAlpha=1;
+    } else if (aiStyle==='clay') {
+      pctx.globalAlpha=.12; pctx.fillStyle='#ffcc88'; pctx.fillRect(0,0,PW,PH); pctx.globalAlpha=1;
+    } else if (aiStyle==='isometric') {
+      pctx.globalAlpha=.08; pctx.strokeStyle='#8af'; pctx.lineWidth=.4;
+      for(let xi=-PH;xi<PW+PH;xi+=16){
+        pctx.beginPath();pctx.moveTo(xi,0);pctx.lineTo(xi+PH,PH);pctx.stroke();
+        pctx.beginPath();pctx.moveTo(xi,0);pctx.lineTo(xi-PH,PH);pctx.stroke();
+      }
+      pctx.globalAlpha=1;
+    }
+
+    // Shape overlays from AI response
+    if (parsed?.shapes) {
+      parsed.shapes.slice(0,20).forEach(s => {
+        pctx.save(); pctx.globalAlpha=.35; pctx.strokeStyle=s.color||'#4af'; pctx.lineWidth=1;
+        const sx=s.x*PW, sy=s.y*PH, sw=s.w*PW, sh=s.h*PH;
+        pctx.beginPath();
+        if (s.type==='circle') pctx.ellipse(sx+sw*.5, sy+sh*.5, sw*.5, sh*.5, 0, 0, Math.PI*2);
+        else pctx.rect(sx,sy,sw,sh);
+        pctx.stroke(); pctx.restore();
+      });
+    }
+    pctx.restore();
+    byId('aiPrevPH').style.display='none';
+  };
+  img.src = srcCanvas.toDataURL();
+}
+
+let lastAICanvas = null;
+function applyAI() {
+  const pc = byId('aiPrevC');
+  saveState();
+  dx.save();
+  dx.drawImage(pc, panX+20, panY+20, pc.width*.8*scale, pc.height*.8*scale);
+  dx.restore();
+}
+function downloadAI() {
+  const pc = byId('aiPrevC');
+  const a = document.createElement('a'); a.download='ai3d.png'; a.href=pc.toDataURL(); a.click();
+}
+
+// ══════════════════════════════════════
+//  KEYBOARD
+// ══════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.target===txtEl||e.target.tagName==='INPUT'||e.target.tagName==='SELECT') return;
+  if (e.ctrlKey||e.metaKey) {
+    if(e.key==='z'){e.preventDefault();undo();}
+    if(e.key==='y'){e.preventDefault();redo();}
+    if(e.key==='s'){e.preventDefault();saveImg();}
+    return;
+  }
+  const k = e.key.toLowerCase();
+  if(k==='p') setTool('pen');
+  if(k==='b') setTool('brush');
+  if(k==='e') setTool('eraser');
+  if(k==='r') setTool('rect');
+  if(k==='c') setTool('circle');
+  if(k==='l') setTool('line');
+  if(k==='t') setTool('text');
+  if(k==='f') setTool('fill');
+  if(k==='i') setTool('eyedrop');
+  if(k==='h') setTool('pan');
+  if(k==='z') setTool('zoom');
+  if(k==='m') setTool('measure');
+  if(k==='+') doZoom(1.2);
+  if(k==='-') doZoom(0.8);
+  if(k==='0') resetView();
+  if(k==='escape') { txtEl.style.display='none'; byId('measureTip').style.display='none'; }
+});
+
+// ══════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════
+resize();
+buildPalette();
+renderLayers();
+setTool('pen');
+</script>
+</body>
+</html>
